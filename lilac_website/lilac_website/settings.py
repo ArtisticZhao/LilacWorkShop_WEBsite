@@ -167,3 +167,13 @@ CKEDITOR_CONFIGS = {
         'extraPlugins': ','.join(['codesnippet']),
     }
 }
+# 发送邮件相关
+EMAIL_HOST = "smtp.126.com"              # 服务器
+EMAIL_PORT = 25                          # 一般情况下都为25
+EMAIL_HOST_USER = "xxxxxxx@126.com"   # 账号
+EMAIL_HOST_PASSWORD = "xxxx"         # 密码
+EMAIL_USE_TLS = False                    # 一般都为False
+EMAIL_FROM = "xxxxxxx@126.com"        # 邮箱来自
+DEFAULT_FROM_EMAIL = "xxxxxxx@126.com"
+# 域名
+HOST = "127.0.0.1:8000"

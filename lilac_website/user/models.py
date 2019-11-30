@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 # 引入django-ckeditor 实现富文本编辑器的功能
 from ckeditor.fields import RichTextField
+from django.utils import timezone
 
 
 # Create your models here.
@@ -43,9 +44,22 @@ class Profile(models.Model):
     采用扩展django原生User类， 这样原生的User类用于处理登录等功能， 这里扩展了用户的信息
     '''
     # 与 User 模型构成一对一关系, 其中on_delete=models.CASCADE 表示user删除时 同时自动删除profile
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(User,
+                                on_delete=models.CASCADE,
+                                related_name='profile')
     # 学校 构成一对多的模式， 即一个学校可以拥有多个学生， 当学校删除时， 用户也一并删除
-    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='school')
+    school = models.ForeignKey(School,
+                               on_delete=models.CASCADE,
+                               related_name='school')
+    # 激活代码
+    active_code = models.CharField(max_length=20, verbose_name="验证码", blank=True)
+    # 代码类型
+    code_type = models.CharField(verbose_name="验证码类型",
+                                 max_length=10,
+                                 blank=True,
+                                 choices=(("register", u"注册"), ("forget",
+                                                                u"找回密码")))
+    code_time = models.DateTimeField(verbose_name="发送时间", default=timezone.now, blank=True)
     # 用户手机号
     phone = models.CharField(max_length=20, blank=True)
     # 用户角色（权限） 用户可以使‘项目发布者’， ‘项目参与者’

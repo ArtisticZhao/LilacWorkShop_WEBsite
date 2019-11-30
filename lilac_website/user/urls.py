@@ -17,4 +17,8 @@ urlpatterns = [
     path('userinfo/<int:id>/', views.user_info, name='userinfo'),
     # 用户信息验证
     path('user-signinup-validate', views.user_signup_in_validate, name='user_signinup_validate'),
+    # 发送注册验证信息
+    path('active_code/<str:username>/', views.send_register_email, name='active_code'),
+    # 验证激活链接
+    path('active/<int:id>/<str:code>/', views.active_user, name='active_user'),
 ]
