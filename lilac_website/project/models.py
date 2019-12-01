@@ -14,20 +14,17 @@ from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFit
 
 
-
 # Create your models here.
 class ProjectPage(models.Model):
     '''
     该类是一个基础项目模型类，网站中的每个发起的项目，都是填充这个表的内容
     '''
     # 文章标题图, 图片处理的方法仅按照教程中给出，具体的需要具体摸索
-    avatar = ProcessedImageField(
-        upload_to='project/%Y%m%d',
-        processors=[ResizeToFit(width=400)],
-        format='JPEG',
-        options={'quality': 100},
-        blank=True
-    )
+    avatar = ProcessedImageField(upload_to='project/%Y%m%d',
+                                 processors=[ResizeToFit(width=400)],
+                                 format='JPEG',
+                                 options={'quality': 100},
+                                 blank=True)
     # 主页项目
     is_homepage = models.BooleanField('是否在主页可见', default=False)
     # 是否在项目页可见, 因为首页可能有一些紫丁香相关的介绍, 因此需要一些非项目的文章
@@ -42,11 +39,15 @@ class ProjectPage(models.Model):
     # 文章正文， 使用富文本编辑器
     body = RichTextField()
     # 发起者, 一对多， 即一个内容发布者可以发布多个项目， 当内容发起者被删除时，其发布的项目同样被删除
-    publisher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='publisher')
+    publisher = models.ForeignKey(User,
+                                  on_delete=models.CASCADE,
+                                  related_name='publisher')
     # 参与者, 多对多， 即一个项目可以有多个参与者， 一个参与者可以参与多个项目
     workers = models.ManyToManyField(User)
     # 申请者, 多对多， 即一个项目可以有多个申请者， 一个申请者可以申请多个项目
-    applicants = models.ManyToManyField(User,related_name='applicants',blank = True)
+    applicants = models.ManyToManyField(User,
+                                        related_name='applicants',
+                                        blank=True)
     # 创建时间
     created = models.DateTimeField(default=timezone.now)
     # 文章更新时间
@@ -76,14 +77,15 @@ class ProjectPage(models.Model):
         return self.title
 
 
-
-
 class HomeProject(models.Model):
     '''
         主页项目类，从基础项目模型类中得出is_homepage
     '''
     # 主页项目 基础项目模型类中 is_homepage == True 的项目
-    Home_Project = models.OneToOneField(ProjectPage, on_delete=models.CASCADE, null=True)
+    Home_Project = models.OneToOneField(ProjectPage,
+                                        on_delete=models.CASCADE,
+                                        null=True)
+
     class Meta:
         '''
         该类用于存储模型的别名等项目

@@ -1,11 +1,13 @@
+# coding: utf-8
 from django import forms
-# ÒıÈëÎÄÕÂÄ£ĞÍ
+# å¼•å…¥æ–‡ç« æ¨¡å‹
 from .models import ProjectPage
 
-# Ğ´ÎÄÕÂµÄ±íµ¥Àà
+
+# å†™æ–‡ç« çš„è¡¨å•ç±»
 class ProjectForm(forms.ModelForm):
     class Meta:
-        # Ö¸Ã÷Êı¾İÄ£ĞÍÀ´Ô´
+        # æŒ‡æ˜æ•°æ®æ¨¡å‹æ¥æº
         model = ProjectPage
-        # ¶¨Òå±íµ¥°üº¬µÄ×Ö¶Î
+        # å®šä¹‰è¡¨å•åŒ…å«çš„å­—æ®µ
         fields = ('title', 'abstract', 'tags', 'body', 'avatar')
