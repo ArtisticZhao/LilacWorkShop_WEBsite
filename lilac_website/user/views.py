@@ -1,9 +1,9 @@
 # coding: utf-8
-
 from django.views import View
 from django.shortcuts import render, HttpResponse, redirect
 # 用户模型
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 # 快捷方式 获取用户或者404
 from django.shortcuts import get_object_or_404
 # 认证组件
@@ -12,9 +12,13 @@ from django.contrib.auth.hashers import check_password
 # 验证登录修饰器
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+# 发送邮件模块
+from django.core.mail import send_mail
+from lilac_website.settings import EMAIL_FROM, HOST
 # 自定义表格
 from .forms import UserLoginForm, UserRegisterForm, ProfileRegisterForm, ProfileEditForm
 from .models import School, Profile
+from .email_send import random_str
 
 
 # Create your views here.
@@ -38,6 +42,12 @@ def user_login(request):
                 login(request, user)
                 return HttpResponse("TODO: 登录成功")
             else:
+                try:
+                    u = User.objects.get(username=data['username'])
+                    if not u.is_active:
+                        return HttpResponse("用户未激活")
+                except ObjectDoesNotExist:
+                    pass
                 return HttpResponse("账号或密码错误")
         else:
             return HttpResponse("账号或密码输入不合法")
@@ -106,21 +116,52 @@ class UserRegisterView(View):
             new_user.set_password(user_register_form_data['password'])
             # 设置email
             new_user.email = user_register_form_data['email']
+            new_user.is_active = False  # 新建立的用户需要邮箱激活
             new_user.save()
             # 保存用户的扩展信息
             new_user_profile = profile_register_form.save(commit=False)
             new_user_profile.user = new_user  # 与用户进行链接
             school = get_object_or_404(School, pk=userprofile_form_data['school'])
             new_user_profile.school = school
+            new_user_profile.active_code = random_str()
+            new_user_profile.code_type = "register"
             new_user_profile.save()
-            # 保存好数据后立即登录并返回博客列表页面
-            login(request, new_user)
-            return redirect('user:edituserinfo', id=new_user.id)
+            # 跳转到验证界面
+            return redirect('user:active_code', new_user.username)
         else:
             # 这里回返回错误信息, 但是实际的时候使用ajax更改页面禁止提交, 这里只是考虑非法提交绕过ajax时候的情况
             return HttpResponse("填写信息有误, 请重新填写<br>错误信息: <br>" +
                                 user_register_form.errors.as_text() +
                                 profile_register_form.errors.as_text())
+
+
+# 发送激活邮件
+def send_register_email(request, username):
+    user = get_object_or_404(User, username=username)
+    if user.is_active:
+        return HttpResponse("用户已经激活")
+    code = user.profile.active_code
+    to_email = user.email
+    send_type = user.profile.code_type
+    if send_type == "register":
+        email_title = "注册激活链接"
+        email_body = "请点击下面的链接激活你的账号:http://{0}/user/active/{1}/{2}/".format(HOST, user.id, code)
+        send_mail(email_title, email_body, EMAIL_FROM, [to_email])
+    return HttpResponse("验证邮件已发")
+
+
+# 验证激活
+def active_user(request, id, code):
+    user = get_object_or_404(User, pk=id)
+    if user.is_active:
+        return HttpResponse("用户已经激活")
+    if user.profile.active_code == code:
+        # 验证成功!
+        user.is_active = True
+        user.save()
+        return HttpResponse("激活成功")
+    else:
+        return HttpResponse("激活失败")
 
 
 # 验证用户注册时填写的信息
